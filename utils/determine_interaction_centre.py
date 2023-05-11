@@ -5,7 +5,7 @@ from pathlib import Path
 import Bio.PDB
 import numpy as np
 import scipy.spatial
-
+import os
 
 class ChainSelect(Bio.PDB.Select):
     """Class to select chains in Bio.PDB object and save them to a new pdb file
@@ -76,8 +76,9 @@ def run_psa(pdb_filepath: Path):
     psa_out = str(pdb_filepath) + ".psa.out"
     psa_err = str(pdb_filepath) + ".psa.err"
 
+    psa_command = os.path.join(os.getcwd(), "external/psa_execs/psa")
     with open(psa_out, "w") as psa_out_handle, open(psa_err, "w") as psa_err_handle:
-        arg_ls = ["psa", "-t", "-nh", "-w", "-v", str(pdb_filepath)]
+        arg_ls = [psa_command, "-t", "-nh", "-w", "-v", str(pdb_filepath)]
         retcode = subprocess.call(arg_ls, stdout=psa_out_handle, stderr=psa_err_handle)
         if retcode != 0:
             raise ValueError("Error while running psa, check error file.")

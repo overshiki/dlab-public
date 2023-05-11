@@ -3,9 +3,11 @@
 """
 import struct
 
-import openbabel
+# import openbabel
+from openbabel import openbabel as ob
 import pandas as pd
-import pybel
+# import pybel
+from openbabel import pybel
 from Bio.SeqUtils import seq1
 from biopandas.pdb import PandasPdb
 
@@ -53,7 +55,7 @@ class Typer:
 
     def __init__(self):
 
-        self.etab = openbabel.OBElementTable()
+        # self.etab = openbabel.OBElementTable()
         self.non_ad_metal_names = [
             "Cu",
             "Fe",
@@ -598,7 +600,8 @@ class Typer:
 
     def obatom_to_smina_type(self, ob_atom):
         num = ob_atom.atomicnum
-        ename = self.etab.GetSymbol(num)
+        # ename = self.etab.GetSymbol(num)
+        ename = ob.GetSymbol(num)
         if num == 1:
             ename = "HD"
         elif num == 6 and ob_atom.OBAtom.IsAromatic():
@@ -613,7 +616,8 @@ class Typer:
 
         hBonded = False
         heteroBonded = False
-        for neighbour in openbabel.OBAtomAtomIter(ob_atom.OBAtom):
+        # for neighbour in openbabel.OBAtomAtomIter(ob_atom.OBAtom):
+        for neighbour in ob.OBAtomAtomIter(ob_atom.OBAtom):
             if neighbour.GetAtomicNum() == 1:
                 hBonded = True
             elif neighbour.GetAtomicNum() != 6:
