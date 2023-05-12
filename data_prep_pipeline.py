@@ -12,7 +12,7 @@ from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
 
-import openbabel
+from openbabel import openbabel
 import pandas as pd
 import yaml
 from biopandas.pdb import PandasPdb
