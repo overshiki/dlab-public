@@ -2,17 +2,10 @@
 Code to run the antibody virtual screening pipeline described in the paper "DLAB - Deep learning methods for structure-based virtual screening of antibodies" ([bioRxiv](https://www.biorxiv.org/content/10.1101/2021.02.12.430941v1))[1]
 
 ## Install
-1. Install libmolgrid [2] by building from source according to the instructions on the authors github [repository](https://github.com/gnina/libmolgrid). Use the source code provided in this repository, as a small change was made to accomodate the centering method employed for DLAB. 
+
+1. run `bash build.sh`
+
 2. Get [ZDock](http://zdock.umassmed.edu/software/) and copy the source code files into the folder external/zdock-3.0.2-src.
-3. Install the python requirements for running data_prep_pipeline.py (which can be run entirely on CPU and is therefore kept seperate from dlab_re_vs_pipeline.py, which requires a GPU):
-
-		pip install -r requirements_cpu.txt  
-
-4. Install the python requirements for running the dlab_re_vs_pipeline:
-
-		pip install -r requirements_gpu.txt
-		
-5. Install [openbabel](https://github.com/openbabel/openbabel), including the python bindings.
 
 ## Test your install
 The folder tests/ contains scripts you can use to check if your folder structure is set up correctly. Run them with pytest:

@@ -62,7 +62,7 @@ def file_len(fname: Path):
     return i + 1
 
 
-def run_dlab_vs(folder: Path, config: dict, dlab_re_df: pd.DataFrame, use_top_n: int):
+def run_dlab_vs(folder: Path, config: dict, dlab_re_df: pd.DataFrame, use_top_n: int, device):
     """Run DLAB-VS as specified by the config file on one complex.
 
     Args:
@@ -120,20 +120,20 @@ def run_dlab_vs(folder: Path, config: dict, dlab_re_df: pd.DataFrame, use_top_n:
                 model_params["resolution"], model_params["radius"], types_file
             )
 
-            dims = gmaker.grid_dimensions(ex_provider.type_size())
+            dims = gmaker.grid_dimensions(ex_provider.num_types())
             grid_size = model_params["radius"] * 2 / model_params["resolution"]
 
             if model_type_dict["model_type"].lower() in ["cnn", "cnn3d"]:
                 net = CNN3D(
                     grid_in=grid_size,
-                    in_channels=ex_provider.type_size(),
+                    in_channels=ex_provider.num_types(),
                     out_layer="sigmoid",
                     out_classes=1,
                 )
             elif model_type_dict["model_type"].lower() in ["dense", "densenet"]:
                 net = densenet_dlab_vs(
                     grid_in=grid_size,
-                    in_channels=ex_provider.type_size(),
+                    in_channels=ex_provider.num_types(),
                     out_layer="sigmoid",
                     out_classes=1,
                 )
@@ -141,7 +141,7 @@ def run_dlab_vs(folder: Path, config: dict, dlab_re_df: pd.DataFrame, use_top_n:
                 raise NotImplementedError("Net type not implemented")
 
             net.load_state_dict(torch.load(str(model_file)))
-            device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+            # device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
             net.to(device)
             net = net.eval()
 
@@ -154,8 +154,8 @@ def run_dlab_vs(folder: Path, config: dict, dlab_re_df: pd.DataFrame, use_top_n:
 
                     tensor_shape = (bs,) + dims
                     batch_tensor = torch.zeros(
-                        tensor_shape, dtype=torch.float32, device="cuda"
-                    )
+                        tensor_shape, dtype=torch.float32
+                    ).to(device)
 
                     batch = ex_provider.next_batch(bs)
                     for j in range(bs):
@@ -165,7 +165,7 @@ def run_dlab_vs(folder: Path, config: dict, dlab_re_df: pd.DataFrame, use_top_n:
                             batch_tensor[j],
                             random_translation=0.0,
                             random_rotation=False,
-                            center=(0.0, 0.0, 0.0),
+                            # center=(0.0, 0.0, 0.0),
                         )
 
                     output = net(batch_tensor)
@@ -204,7 +204,7 @@ def setup_gmaker_eprov(resolution: float, radius: float, data_file: Path):
     return gmaker, e_provider_test
 
 
-def run_dlab_re(folder: Path, config: dict):
+def run_dlab_re(folder: Path, config: dict, device):
     """Run DLAB-Re on the types files in the folder as specified in the config.
 
     Args:
@@ -245,17 +245,19 @@ def run_dlab_re(folder: Path, config: dict):
                     model_params["resolution"], model_params["radius"], types_file
                 )
 
-                dims = gmaker.grid_dimensions(ex_provider.type_size())
+                # dims = gmaker.grid_dimensions(ex_provider.type_size())
+                dims = gmaker.grid_dimensions(ex_provider.num_types())
                 tensor_shape = (model_params["batch_size"],) + dims
                 batch_tensor = torch.zeros(
-                    tensor_shape, dtype=torch.float32, device="cuda"
-                )
+                    tensor_shape, dtype=torch.float32
+                ).to(device)
                 grid_size = model_params["radius"] * 2 / model_params["resolution"]
 
                 if model_type_dict["model_type"].lower() in ["cnn", "cnn3d"]:
                     net = CNN3D(
                         grid_size,
-                        ex_provider.type_size(),
+                        # ex_provider.type_size(),
+                        ex_provider.num_types(),
                         out_layer="none",
                         out_classes=11,
                     )
@@ -263,7 +265,7 @@ def run_dlab_re(folder: Path, config: dict):
                     raise NotImplementedError("Net option not implemented")
 
                 net.load_state_dict(torch.load(str(model_file)))
-                device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+                # device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
                 net.to(device)
                 net = net.eval()
 
@@ -281,7 +283,7 @@ def run_dlab_re(folder: Path, config: dict):
                             batch_tensor[j],
                             random_translation=0.0,
                             random_rotation=False,
-                            center=(0.0, 0.0, 0.0),
+                            # center=(0.0, 0.0, 0.0),
                         )
 
                     output = net(batch_tensor)
@@ -350,7 +352,7 @@ def get_zdock_score(folder: Path, config: dict):
     return score
 
 
-def run_on_docking_folder(folder: Path, config: dict):
+def run_on_docking_folder(folder: Path, config: dict, device):
     """Run DLAB-Re and DLAB-VS on the output from one ZDock run.
 
     Args:
@@ -362,10 +364,10 @@ def run_on_docking_folder(folder: Path, config: dict):
     """
     # run rescoring, get top10, get dlab_re_max value
     make_types_file(folder)
-    dlab_re_df = run_dlab_re(folder, config)
+    dlab_re_df = run_dlab_re(folder, config, device)
 
     # run dlab-vs, get mean score
-    dlab_vs_score = run_dlab_vs(folder, config, dlab_re_df, use_top_n=10)
+    dlab_vs_score = run_dlab_vs(folder, config, dlab_re_df, 10, device)
 
     # get zdock score
     zdock_score = get_zdock_score(folder, config)
@@ -374,7 +376,7 @@ def run_on_docking_folder(folder: Path, config: dict):
     return (dlab_re_df["dlab-re"].max(), dlab_vs_score, zdock_score)
 
 
-def run(config: dict):
+def run(config: dict, device):
     """Run DLAB on parsed docking output.
 
     Args:
@@ -389,7 +391,7 @@ def run(config: dict):
     results = []
     for count, target_dir in enumerate(target_dirs):
         sys.stdout.flush()
-        results.append([target_dir.name, run_on_docking_folder(target_dir, config)])
+        results.append([target_dir.name, run_on_docking_folder(target_dir, config, device)])
 
     with open(config["output_file"], "w") as outf:
         outf.write("name,dlab-re-max_score,dlab-vs_score,zdock_score\n")
@@ -402,4 +404,6 @@ def run(config: dict):
 if __name__ == "__main__":
     args = get_args()
     config_dict = parse_yaml(args.c)
-    run(config_dict)
+    device = 0
+    # print(config_dict)
+    run(config_dict, device)
