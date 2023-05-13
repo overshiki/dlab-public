@@ -1,6 +1,14 @@
 openbabel*
 libmolgrid*
 boost*
+cmake*
+cmake-*
+zdock*
+example_input_files/output
+
+*.error
+*.output 
+*.sbatch
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

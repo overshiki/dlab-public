@@ -380,13 +380,13 @@ def run(config: dict, output_dir: Path):
         )
 
     # tar the gninatypes output, then delete
-    os.chdir(output_dir)
-    to_tar = "./gninatypes"
-    tarred_name = f"./{config['run_name']}_gninatypes.tar.gz"
+    # os.chdir(output_dir)
+    # to_tar = "./gninatypes"
+    # tarred_name = f"./{config['run_name']}_gninatypes.tar.gz"
 
-    proc = subprocess.Popen(["tar", "-czf", tarred_name, to_tar])
-    proc.communicate()
-    shutil.rmtree(to_tar)
+    # proc = subprocess.Popen(["tar", "-czf", tarred_name, to_tar])
+    # proc.communicate()
+    # shutil.rmtree(to_tar)
     return 0
 
 

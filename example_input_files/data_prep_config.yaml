@@ -1,8 +1,8 @@
 # file formatted as the example file in this folder, detailing the antibody-antigen pairings to dock
-pairings_file: /path/to/pairings_file.csv
+pairings_file: /shared/home/le/dlab-public/example_input_files/pairings_file.csv
 
 # directory in which to create the run folder
-output_directory: /path/to/output/
+output_directory: /shared/home/le/dlab-public/example_input_files/output/
 
 # name of the run directory --> folder structure will be output_directory/run_name/
 run_name: test_run
